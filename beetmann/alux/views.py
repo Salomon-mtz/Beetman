@@ -33,6 +33,23 @@ import zipfile
 from bs4 import BeautifulSoup
 from zeep import Client
 from . import models
+
+import chunk
+from fileinput import filename
+from multiprocessing import context
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.template import loader
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+import json
+from json import dumps
+from django.views.decorators.csrf import csrf_exempt
+import ast #para diccionario
+import sqlite3
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required   
+import hashlib
 # from python_webapp_flask import app
 # from python_webapp_flask import cache
 
@@ -120,7 +137,7 @@ def validar_formulario(r):
 
 
 login_manager = LoginManager()
-login_manager.init_app(app)
+#login_manager.init_app(app)
 login_manager.login_view = "login"
 
 #print('-------------------------')
@@ -828,32 +845,33 @@ def reiniciar_usuarios():
         cursor.execute(reiniciar_usuarios)
     cursor.commit()
 
-
 def signin():
     """Esta función verifica las credenciales y realiza el login."""
-    reiniciar_usuarios()
-    usuario = request.form["username"]
-    contrasena = request.form["password"]
-    
-
-    user = get_usuario(usuario)
-    #Validacion correcta
-    if user is not None and user.check_password(contrasena):
-        login_user(user)#, remember=form.remember_me.data)
-        next_page = request.args.get('next')
-        #Verificar redireccionamiento seguro
-        #if not is_safe_url(next):
-            #return flask.abort(400)
+    if request.method == "POST":
+        reiniciar_usuarios()
+        usuario = request.form["username"]
+        contrasena = request.form["password"]
         
-        #Si no hay pagina de redireccion
-        #print(next_page)   
-        if not next_page:
-            next_page = url_for('home')
 
-        #print(next_page)    
-        return redirect(next_page)
-    #Validación incorrecta
-    return render_template("log.html", alert="El nombre de usuario o la contraseña son incorrectos", year=datetime.now().year)
+        user = get_usuario(usuario)
+        #Validacion correcta
+        if user is not None and user.check_password(contrasena):
+            login_user(user)#, remember=form.remember_me.data)
+            #next_page = request.args.get('next')
+            #Verificar redireccionamiento seguro
+            #if not is_safe_url(next):
+                #return flask.abort(400)
+            
+            #Si no hay pagina de redireccion
+            #print(next_page)   
+            #if not next_page:
+                #next_page = url_for('home')
+
+            #print(next_page)    
+            return render(request, 'alux/log.html', {})
+        #Validación incorrecta
+    else:
+        return render(request, 'alux/log.html', {})
   
   
 @login_manager.unauthorized_handler
